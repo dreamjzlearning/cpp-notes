@@ -1,0 +1,246 @@
+---
+title: "Ch02 变量和基本类型"
+category:
+ - Programming
+tag:
+ - C++
+---
+
+## 1. 基本内置类型
+
+- 算数类型：字符、整数、布尔和浮点数。算数类型的尺寸在不同的机器上有所不同。
+- 空类型 (void)
+
+## 2. 变量
+
+```cpp
+// type var_name;
+// 定义
+int i1, i2, i3;
+// 定义并初始化
+int i = 0;
+```
+
+若定义变量时，没有指定初始值，则变量将被默认初始化：
+
+- 若为全局变量，则初始化为零值
+- 若为局部变量，则不被初始化，其值是未定义的
+
+**建议初始化每一个内置类型的变量，以保证程序安全**。
+
+### 2.1 声明和定义
+
+```cpp
+extern int i; // 声明 i 而非定义
+int j; // 声明并定义 j
+```
+
+**变量只能被定义一次，但可以被多次声明**
+
+### 2.2 命名规范
+
+- 标识符有实际含义
+- 变量名使用小写字母
+- 自定义类型以大写字母开头
+- 多个单词必须区分
+
+### 2.3 作用域
+
+- 全局 (global scope)：在整个程序范围内均可使用
+- 块 (block scope)：仅在语句块内使用
+
+## 3. 复合类型
+
+### 3.1 引用
+
+引用 (reference) 为对象起了另外一个名字，引用类型引用另外一种类型。
+
+使用 `&` 来定义引用类型：
+
+```cpp
+int ival = 1024;
+int &refVal = ival; // refVal 指向 ival
+
+int &refVal2; // 报错，引用必须初始化
+```
+
+定义引用时，程序将引用和初始值绑定在一起，而不是将初始值赋值给引用。一旦初始化完成，引用将无法重新绑定到另一个对象。
+
+```cpp
+refVal = 2; 
+int i1 = refVal; 
+```
+
+**引用并非对象，只是已存在对象的别名**。
+
+### 3.2 指针
+
+指针用于存放对象的地址，使用 `*` 定义指针：
+
+```cpp
+int *ip1, *ip2; // int 类型的指针
+double dp, *dp2; // dp 为 double 类型，dp2 为 double 类型的指针
+```
+
+使用 `&` 获取对象的地址：
+
+```cpp
+int ival = 42;
+int *p = &ival; 
+```
+
+使用解引用符 `*` 来访问对象：
+
+```cpp 
+int ival = 42;
+int *p = &ival;
+cout << *p;
+```
+
+#### 3.2.1 空指针
+
+空指针 (null pointer) 不指向任何对象。
+
+```cpp
+int *p1 = nullptr; // 等价于 int *p1 = 0;
+int *p2 = 0;
+
+// 引入 cstdlib
+int *p3 = NULL; // 等价于 int *p3 = 0;
+```
+
+**一定要初始化所有指针，为初始化的指针所引发的后果无法预计**。
+
+#### 3.2.2 void*
+
+`void*` 可用于存放任意对象的地址。
+
+```cpp
+double obj = 3.14;
+double *pd = &obj;
+
+void *pv = &obj;
+pv = pd; // pv 可存放任意类型的指针
+```
+
+## 4. const
+
+被 const 修饰的变量无法被改变。
+
+```cpp
+const int bufSize = 512;
+
+int i = 10;
+const int ci = i; // 使用变量进行初始化
+```
+
+若想要在多文件之间共享 const 对象，必须在定义之前使用 extern 关键字。
+
+```cpp
+extern const int bufSize = fcn();
+```
+
+### 4.1 const 的引用
+
+将引用绑定到 const 对象上，被称为对常量的引用 (reference to const)。
+
+```cpp
+const int ci = 1024;
+const int &r1 = ci;
+
+r1 = 42; // 报错，ci 为常量，无法修改
+int &r2 = ci; // 报错，非常量引用无法引用 const
+```
+
+const 引用可以作用于非 const 对象：
+
+```cpp
+int i = 42;
+int &r1 = i;
+const int &r2 = i;
+r1 = 0; // 可通过 r1 修改 i
+r2 = 0; // 报错，r2 为 const 引用
+```
+
+### 4.2 指针和 const
+
+指向常量的指针无法修改所指对象的值，只能用于存放常量的地址：
+
+```cpp
+const double pi = 3.14;
+double *ptr = &pi; // 报错，ptr 为普通指针
+const double *cptr = &pi;
+*cptr = 3; // 错误，无法修改常量
+```
+
+常量指针可指向非常量：
+
+```cpp
+int i = 10;
+const int *iptr = &i;
+*iptr = 1; // 报错，常量指针无法修改原值
+```
+
+指针本身可以为常量，通过 `*const` 定义：
+```cpp
+int errNum = 0;
+int *const curErr = &errNum; // 指针本身为常量
+*curErr = 0; // 可以修改原值
+```
+
+### 4.3 constexpr 和 常量表达式
+
+常量表达式为值不会改变且在编译过程中就能得到结果的表达式。
+
+将变量声明为 `constexpr`  可以让编译器来验证变量的值是否为常量表达式。
+
+```cpp
+constexpr int mf = 20;
+constexpr int limit = mf + 1;
+```
+
+`constexpr` 可用于指针：
+
+```cpp
+const int *p = nullptr; // 指向常量的指针
+
+
+constexpr int *q = nullptr; // 常量指针
+// 等价于
+int *const q = nullptr;
+```
+
+## 5. 处理类型
+
+### 5.1 类型别名
+
+使用 `typedef` 定义类型别名：
+
+```cpp
+typedef double wages;
+typedef wages base, *p; // p 为 double* 的同义词
+```
+
+也可使用别名声明：
+
+```cpp
+using SI = Sales_item; // SI 为 Sales_item 的别名
+```
+
+### 5.2 auto 类型说明符
+
+`auto` 可让编译器推算变量的类型：
+
+```cpp
+auto item = val1 + val2; 
+```
+
+### 5.3 decltype 类型指示符
+
+`decltype` 让编译器分析表达式并获取类型，但不实际计算：
+
+ ```cpp
+ // f 不会被实际调用
+ decltype(f()) sum = x; // sum 的类型为 f() 的返回类型
+ ```
+
